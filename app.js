@@ -2,6 +2,8 @@ let results;
 let schema;
 let selectedModel = 'full';
 let previousPrediction = null;
+let activeTooltipMark = null;
+let tooltipPinned = false;
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -11,33 +13,84 @@ function svg(content, width, height, label) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${label}">${content}</svg>`;
 }
 
-function attachDetails(chartId, detailId, descriptions) {
-  const detail = $(detailId);
+function chartTooltip() {
+  let tooltip = $('#chart-tooltip');
+  if (!tooltip) {
+    tooltip = document.createElement('div');
+    tooltip.id = 'chart-tooltip';
+    tooltip.className = 'chart-tooltip';
+    tooltip.setAttribute('role', 'tooltip');
+    tooltip.hidden = true;
+    document.body.appendChild(tooltip);
+  }
+  return tooltip;
+}
+
+function hideChartTooltip(force = false) {
+  if (tooltipPinned && !force) return;
+  chartTooltip().hidden = true;
+  activeTooltipMark = null;
+  tooltipPinned = false;
+}
+
+function showChartTooltip(mark, selected, pin = false) {
+  const tooltip = chartTooltip();
+  tooltip.replaceChildren();
+  const heading = document.createElement('strong');
+  heading.textContent = selected.title;
+  tooltip.appendChild(heading);
+  const list = document.createElement('dl');
+  for (const [name, value] of selected.fields) {
+    const item = document.createElement('div');
+    const term = document.createElement('dt');
+    term.textContent = name;
+    const result = document.createElement('dd');
+    result.textContent = value;
+    item.append(term, result);
+    list.appendChild(item);
+  }
+  tooltip.appendChild(list);
+  tooltipPinned = pin;
+  activeTooltipMark = mark;
+  tooltip.hidden = false;
+  const markRect = mark.getBoundingClientRect();
+  const tipRect = tooltip.getBoundingClientRect();
+  const left = Math.max(12, Math.min(window.innerWidth - tipRect.width - 12, markRect.left + markRect.width / 2 - tipRect.width / 2));
+  const below = markRect.bottom + 12;
+  const top = below + tipRect.height <= window.innerHeight - 12 ? below : Math.max(12, markRect.top - tipRect.height - 12);
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+}
+
+function attachDetails(chartId, descriptions) {
   $$(`${chartId} [data-info]`).forEach((mark) => {
-    const show = () => {
-      const selected = descriptions[Number(mark.dataset.info)];
-      detail.replaceChildren();
-      const heading = document.createElement('strong');
-      heading.textContent = selected.title;
-      detail.appendChild(heading);
-      const list = document.createElement('dl');
-      for (const [name, value] of selected.fields) {
-        const term = document.createElement('dt');
-        term.textContent = name;
-        const result = document.createElement('dd');
-        result.textContent = value;
-        list.append(term, result);
+    const selected = descriptions[Number(mark.dataset.info)];
+    mark.setAttribute('aria-describedby', 'chart-tooltip');
+    mark.addEventListener('mouseenter', () => showChartTooltip(mark, selected));
+    mark.addEventListener('mouseleave', () => { if (activeTooltipMark === mark) hideChartTooltip(); });
+    mark.addEventListener('focus', () => showChartTooltip(mark, selected));
+    mark.addEventListener('blur', () => { if (activeTooltipMark === mark) hideChartTooltip(); });
+    mark.addEventListener('click', () => showChartTooltip(mark, selected, true));
+    mark.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        showChartTooltip(mark, selected, true);
       }
-      detail.appendChild(list);
-      detail.classList.add('active');
-    };
-    mark.addEventListener('mouseenter', show);
-    mark.addEventListener('focus', show);
-    mark.addEventListener('click', show);
+    });
   });
 }
 
+document.addEventListener('pointerdown', (event) => {
+  if (!event.target.closest('[data-info]')) hideChartTooltip(true);
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') hideChartTooltip(true);
+});
+window.addEventListener('scroll', () => hideChartTooltip(true), {passive: true});
+window.addEventListener('resize', () => hideChartTooltip(true));
+
 function drawPredictionChart() {
+  hideChartTooltip(true);
   const groups = results.age_groups.filter((group) => group.test && group[`${selectedModel}_mean`] !== null);
   const W = 920, H = 300, L = 42, R = 18, T = 15, B = 31, MAX = 36;
   const x = (value) => L + (value / MAX) * (W - L - R);
@@ -65,9 +118,7 @@ function drawPredictionChart() {
     content += `<circle data-info="${index}" tabindex="0" cx="${x(group.age)}" cy="${y(mean)}" r="7" fill="${color}" stroke="white" stroke-width="2" aria-label="${number(group.age, 0)}-month group, ${group.test} test samples"/>`;
   });
   $('#prediction-chart').innerHTML = svg(content, W, H, 'Mean predicted age versus recorded age, grouped by age');
-  $('#prediction-detail').textContent = 'Hover over or focus an age point to see its group summary.';
-  $('#prediction-detail').classList.remove('active');
-  attachDetails('#prediction-chart', '#prediction-detail', descriptions);
+  attachDetails('#prediction-chart', descriptions);
 }
 
 function drawAgeChart() {
@@ -93,7 +144,7 @@ function drawAgeChart() {
     ]});
   });
   $('#age-chart').innerHTML = svg(content, W, H, 'Number of matched samples at each recorded age');
-  attachDetails('#age-chart', '#age-detail', descriptions);
+  attachDetails('#age-chart', descriptions);
 }
 
 function drawErrorChart() {
@@ -122,7 +173,7 @@ function drawErrorChart() {
     ]});
   });
   $('#error-chart').innerHTML = svg(content, W, H, 'Average absolute error by recorded age group for both models');
-  attachDetails('#error-chart', '#error-detail', descriptions);
+  attachDetails('#error-chart', descriptions);
 }
 
 function drawBatchChart() {
@@ -148,7 +199,7 @@ function drawBatchChart() {
     ]});
   });
   $('#batch-chart').innerHTML = svg(content, W, H, 'Number of matched samples by plasma batch');
-  attachDetails('#batch-chart', '#batch-detail', descriptions);
+  attachDetails('#batch-chart', descriptions);
 }
 
 function drawSexChart() {
@@ -172,7 +223,7 @@ function drawSexChart() {
     ]});
   });
   $('#sex-chart').innerHTML = svg(content, W, H, 'Matched sample counts by sex');
-  attachDetails('#sex-chart', '#sex-detail', descriptions);
+  attachDetails('#sex-chart', descriptions);
 }
 
 function showError(message) {
