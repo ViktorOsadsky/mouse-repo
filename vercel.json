@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "functions": {
+    "api/predict.py": {
+      "maxDuration": 60,
+      "includeFiles": "models/**"
+    }
+  }
+}

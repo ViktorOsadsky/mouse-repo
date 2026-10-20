@@ -1,0 +1,21 @@
+{
+  "model": "boosted_linear_blend",
+  "test_samples": 124,
+  "test_mice": 96,
+  "mse_months_squared": 19.049963160469144,
+  "rmse_months": 4.364626348322287,
+  "mae_months": 3.4905273262557506,
+  "r2": 0.5527149275266985,
+  "validation_mae_months": 3.2136729321690836,
+  "linear_weight": 0.3,
+  "features": [
+    "Body_Weight",
+    "Lean_Mass_g",
+    "Fat_Mass_g",
+    "Frailty_Index",
+    "Rotarod_Avg_Latency_Fall",
+    "Grip_Forepaws_Avg",
+    "YMaze_Alternation_Ratio"
+  ],
+  "seed": 42
+}
