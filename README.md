@@ -1,7 +1,8 @@
 # Mouse Age Atlas website
 
-This is a Vercel-ready research prototype. It reports held-out chronological-age
-metrics and offers two prediction paths:
+This is a Vercel-ready cohort explorer with three tabs: dataset overview,
+interactive plasma protein plot, and chronological-age estimator. It offers
+two prediction paths:
 
 - A behavior-only estimator using seven measurements, sex, and line. It blends
   a boosted model with a linear model for smoother input responses.
@@ -10,10 +11,12 @@ metrics and offers two prediction paths:
 
 Neither model estimates age at death or remaining lifespan. `Age_month` in the
 supplied workbooks is age at measurement; some mouse IDs appear at multiple ages.
-The public `data/results.json` file contains age-, batch-, and sex-level
-aggregates, not individual mouse records. Raw cohort data remains outside
-`web/`. Each figure can be downloaded as an SVG; the figures and result table
-are for review and need final author approval before manuscript use.
+The public `data/results.json` file contains cohort aggregates. The
+`data/explorer.json` file contains de-identified plot coordinates for 18
+selected proteins: age, mouse line, and normalized log2 protein signal. Each
+protein's points are independently shuffled, so there is no cross-protein
+sample key. Mouse IDs, raw plasma intensities, and original cohort tables
+remain outside `web/`. The plot can be downloaded as an SVG.
 
 ## Local review
 
@@ -50,6 +53,7 @@ behavior-form example. The function endpoint should return a JSON prediction
 from `/api/predict`.
 
 To regenerate the site data and model artifacts after retraining, run
-`prepare_web_models.py` from the parent local `Mouse` folder. The figures and results table
-should be updated together if a new model or split is used. See
-`../paper_readiness.md` for the current statistical review and limits.
+`prepare_web_models.py` and `prepare_explorer_data.py` from the parent local
+`Mouse` folder. The model summary and plot data should be updated together if
+a new cohort or split is used. See `../paper_readiness.md` for the current
+statistical review and limits.

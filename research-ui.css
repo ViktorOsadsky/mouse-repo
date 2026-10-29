@@ -1,0 +1,156 @@
+/* Research dashboard styling, based on the supplied plasma-proteome reference. */
+:root {
+  --ink: #262b32;
+  --muted: #626b75;
+  --paper: #fff;
+  --line: #dedede;
+  --deep: #3979d9;
+  --teal: #3979d9;
+  --font: Arial, Helvetica, sans-serif;
+  --display: Arial, Helvetica, sans-serif;
+}
+
+body { background: #fff; color: var(--ink); font: 15px/1.5 var(--font); }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; letter-spacing: 0; }
+p { color: var(--muted); }
+.container { width: min(1420px, calc(100% - 72px)); }
+
+.site-header {
+  background: linear-gradient(#fafafa, #e5e5e5);
+  border-bottom: 1px solid #d3d3d3;
+}
+.header-inner { min-height: 57px; gap: 0; }
+.main-tabs { order: 0; margin-left: 0; min-height: 57px; gap: 0; }
+.main-tabs button {
+  border: 0;
+  padding: 0 19px;
+  font-size: 15px;
+  color: #656d75;
+}
+.main-tabs button:first-child { padding-left: 0; }
+.main-tabs button.active, .main-tabs button:hover {
+  border: 0;
+  background: none;
+  color: #4383e4;
+  font-weight: 400;
+}
+.wordmark { order: 1; margin-left: auto; color: #7a8289; font: 13px var(--font); }
+.site-panel { padding-bottom: 48px; }
+
+#dataset-panel > .container { display: flex; flex-direction: column; }
+.hero { align-self: center; text-align: center; max-width: 1050px; padding: 35px 0 20px; }
+.hero h1 { font: 400 clamp(30px, 3vw, 42px)/1.2 var(--font); margin: 0 0 22px; letter-spacing: 0; }
+.hero-lead { max-width: 900px; font: 16px/1.55 var(--font); color: #626b75; }
+.age-distribution { order: 1; align-self: center; width: min(100%, 840px); border: 0; padding: 10px 0 0; }
+.age-distribution .section-heading { margin: 0 0 10px; text-align: center; justify-content: center; }
+.age-distribution .section-heading h2 { font: 400 19px var(--font); margin: 0 0 6px; }
+.age-distribution .section-heading p { font-size: 12px; }
+.overview-chart { height: 265px; margin: 0; }
+.age-distribution .figure-note { text-align: center; margin: 0; }
+.stat-row { order: 2; margin: 32px auto 0; width: min(100%, 900px); border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.stat-row > div, .stat-row > div:first-child { text-align: center; padding: 17px 10px; }
+.stat-row strong { font: 400 27px/1.2 var(--font); }
+.stat-row span { font-size: 12px; }
+.model-summary { order: 3; width: min(100%, 900px); margin: 18px auto 0; padding: 0; border: 0; display: flex; align-items: baseline; justify-content: center; gap: 18px; }
+.model-summary h2 { flex: none; font: 400 15px var(--font); }
+.model-summary p { font-size: 13px; }
+.model-summary .text-link { margin: 0; color: #3979d9; border-color: #3979d9; }
+
+#plot-panel .container, #estimator-panel .container { width: min(1660px, calc(100% - 72px)); }
+.page-heading { max-width: none; padding: 27px 0 17px; }
+.page-heading h1 { font: 400 25px/1.2 var(--font); margin: 0 0 5px; }
+.page-heading > p:last-child { font: 13px/1.5 var(--font); }
+.explorer-layout {
+  grid-template-columns: 240px minmax(0, 1fr) 275px;
+  align-items: start;
+  gap: 0;
+  border: 0;
+}
+.explorer-controls {
+  background: #f4f4f4;
+  border: 1px solid #dedede;
+  border-radius: 3px;
+  padding: 25px 22px;
+}
+.controls-heading h2 { font: 400 19px var(--font); margin: 0 0 18px; }
+.control-label { font-size: 13px; font-weight: 400; margin: 15px 0 6px; color: var(--ink); }
+.control-input { border-color: #cacaca; border-radius: 4px; font: 13px var(--font); height: 39px; }
+.control-input:focus { border-color: #3979d9; outline: 2px solid #3979d934; }
+.control-group-heading { border: 0; margin-top: 24px; padding: 0; font: 18px Georgia, 'Times New Roman', serif; color: var(--ink); }
+.control-group-heading output { font: 11px var(--font); color: var(--muted); }
+.control-group-heading button { color: #3979d9; }
+.trend-option { border: 0; margin: 8px 0 0; padding: 0; font-size: 13px; }
+.trend-option input, .line-choice input { accent-color: #3979d9; }
+.line-options { gap: 0; margin-top: 8px; }
+.line-choice { font-size: 12px; padding: 3px 0; }
+.line-choice:hover { background: #e9edf1; }
+.range-label { display: grid; grid-template-columns: 32px 1fr; gap: 3px 8px; margin-top: 10px; font-size: 12px; color: #4d5660; }
+.range-label input { width: 100%; margin: 0; accent-color: #3979d9; }
+.range-label span { grid-column: 2; justify-self: end; color: var(--muted); font-size: 11px; }
+.control-footnote { font-size: 11px; margin-top: 24px; }
+.plot-main { background: #fff; padding: 12px 30px 0; }
+.plot-heading { justify-content: center; text-align: center; }
+.plot-heading h2 { font: 400 21px var(--font); margin: 0 0 3px; }
+.plot-heading p { font-size: 12px; }
+.download-button { border-radius: 3px; padding: 9px 13px; background: #414141; border-color: #414141; color: #fff; font-size: 12px; }
+.download-button:hover { background: #333; }
+.plot-main > .download-button { margin-top: 18px; }
+.plot-meta { border: 0; margin-top: 10px; padding: 0; font-size: 11px; }
+.scatter-plot { height: 500px; margin-top: 2px; }
+.plot-legend { border-top: 0; }
+.plot-main > .figure-note { font-size: 11px; }
+.point-tooltip { border-color: #b8b8b8; border-radius: 3px; }
+
+.plot-summary { min-width: 0; padding: 16px 0 0 8px; }
+.plot-summary h2 { font: 400 17px var(--font); margin: 0 0 5px; }
+.plot-summary > p { font-size: 11px; line-height: 1.4; margin-bottom: 13px; }
+.plot-summary table { width: 100%; border-collapse: collapse; font-size: 11px; font-variant-numeric: tabular-nums; }
+.plot-summary thead { background: #111; color: #fff; }
+.plot-summary th, .plot-summary td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #d6d6d6; }
+.plot-summary tbody th { font-weight: 400; }
+.plot-summary tbody tr:nth-child(even) { background: #f6f6f6; }
+
+#estimator-panel .predict-grid { border: 1px solid var(--line); background: #fff; }
+.form-panel { background: #f8f8f8; }
+.output-panel { background: #f1f4f8; }
+.tabs button.active { border-color: #3979d9; color: #3979d9; }
+.primary { background: #414141; }
+.primary:hover { background: #333; }
+.site-footer { margin-top: 18px; background: linear-gradient(#fafafa, #e5e5e5); border-top: 1px solid #d4d4d4; }
+.site-footer .footer-inner { min-height: 58px; padding: 12px 0; }
+.site-footer strong, .site-footer p { font: 12px var(--font); color: #68717b; }
+.site-footer a { text-decoration: none; color: #3979d9; }
+
+@media (max-width: 1150px) {
+  .explorer-layout { grid-template-columns: 220px minmax(0, 1fr); }
+  .plot-summary { grid-column: 2; padding: 8px 30px 20px; }
+  .plot-summary table { max-width: 440px; }
+}
+@media (max-width: 700px) {
+  .container, #plot-panel .container, #estimator-panel .container { width: calc(100% - 30px); }
+  .header-inner { padding: 0; display: block; }
+  .main-tabs { min-height: 50px; margin: 0; gap: 0; }
+  .main-tabs button { font-size: 12px; padding: 0 12px; }
+  .main-tabs button:first-child { padding-left: 0; }
+  .wordmark { display: none; }
+  .hero { padding: 30px 0 16px; }
+  .hero h1 { font-size: 30px; margin-bottom: 12px; }
+  .hero-lead { font-size: 14px; }
+  .age-distribution { padding-top: 8px; }
+  .overview-chart { height: 210px; }
+  .stat-row { margin-top: 20px; }
+  .stat-row > div { padding: 13px 7px; }
+  .model-summary { display: block; margin-top: 18px; }
+  .model-summary p { margin: 5px 0 8px; }
+  .page-heading { padding: 22px 0 17px; }
+  .page-heading h1 { font-size: 23px; }
+  .explorer-layout { display: block; }
+  .explorer-controls { padding: 19px; }
+  .plot-main { padding: 20px 0 0; }
+  .plot-heading, .plot-meta { margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; }
+  .plot-heading h2 { font-size: 18px; }
+  .download-button { font-size: 10px; padding: 7px; }
+  .scatter-plot { height: 360px; }
+  .plot-summary { padding: 20px 0; }
+  .site-footer .footer-inner { display: block; }
+}
