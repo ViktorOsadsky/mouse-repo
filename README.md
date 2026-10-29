@@ -12,11 +12,12 @@ two prediction paths:
 Neither model estimates age at death or remaining lifespan. `Age_month` in the
 supplied workbooks is age at measurement; some mouse IDs appear at multiple ages.
 The public `data/results.json` file contains cohort aggregates. The
-`data/explorer.json` file contains de-identified plot coordinates for 18
-selected proteins: age, mouse line, and normalized log2 protein signal. Each
-protein's points are independently shuffled, so there is no cross-protein
-sample key. Mouse IDs, raw plasma intensities, and original cohort tables
-remain outside `web/`. The plot can be downloaded as an SVG.
+`data/explorer.json` catalog lists all 3,983 proteins used by the model and
+the matched sample metadata, including mouse IDs and batches. The
+`data/proteins/` files contain normalized log2 signal values for every
+detected protein/sample pair. These files load on demand when a visitor selects
+a protein. The original plasma quantity matrix and phenotype workbook remain
+outside `web/`. The plot can be downloaded as an SVG.
 
 ## Local review
 

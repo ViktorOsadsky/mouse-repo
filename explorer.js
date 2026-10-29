@@ -7,6 +7,32 @@
   let chosenProtein = 'P08226';
   let activePoint = null;
   let pinned = false;
+  let activeProteinData = null;
+  let plotRequest = 0;
+  const shardCache = new Map();
+  const pendingShards = new Map();
+
+  async function loadProteinPoints(protein) {
+    let shard = shardCache.get(protein.shard);
+    if (!shard) {
+      if (!pendingShards.has(protein.shard)) {
+        const request = fetch(`/data/proteins/${protein.shard}`).then(response => {
+          if (!response.ok) throw new Error(`Could not load ${protein.shard}`);
+          return response.json();
+        }).then(data => {
+          shardCache.set(protein.shard, data);
+          if (shardCache.size > 3) shardCache.delete(shardCache.keys().next().value);
+          return data;
+        }).finally(() => pendingShards.delete(protein.shard));
+        pendingShards.set(protein.shard, request);
+      }
+      shard = await pendingShards.get(protein.shard);
+    }
+    return (shard[protein.accession] || []).map(([sampleIndex, value]) => {
+      const [mouseId, age, line, batch] = explorer.samples[sampleIndex];
+      return [age, line, value, mouseId, batch];
+    });
+  }
 
   function showTab(name, updateHash = true) {
     const selected = ['dataset', 'plot', 'estimator'].includes(name) ? name : 'dataset';
@@ -131,7 +157,9 @@
     age.textContent = `Age ${point[0]} months`;
     const signal = document.createElement('b');
     signal.textContent = `Protein signal ${point[2].toFixed(2)}`;
-    node.append(title, age, signal);
+    const mouse = document.createElement('span');
+    mouse.textContent = `Mouse ${point[3]} · batch ${point[4]}`;
+    node.append(title, age, signal, mouse);
     node.hidden = false;
     activePoint = mark;
     pinned = pin;
@@ -159,8 +187,9 @@
     });
   }
 
-  function drawPlot() {
+  async function drawPlot() {
     if (!explorer) return;
+    const currentRequest = ++plotRequest;
     hideTooltip(true);
     const protein = explorer.proteins.find(item => item.accession === chosenProtein);
     const title = $('#plot-title');
@@ -175,9 +204,21 @@
     }
     title.textContent = `${protein.gene} · ${protein.accession}`;
     $('#plot-description').textContent = protein.description;
+    if (!activeProteinData || activeProteinData.accession !== protein.accession) {
+      $('#scatter-plot').innerHTML = '<p class="plot-empty">Loading protein measurements…</p>';
+      try {
+        const loadedPoints = await loadProteinPoints(protein);
+        if (currentRequest !== plotRequest) return;
+        activeProteinData = {accession: protein.accession, points: loadedPoints};
+      } catch (error) {
+        if (currentRequest !== plotRequest) return;
+        $('#scatter-plot').innerHTML = '<p class="plot-empty">This protein could not be loaded. Try again.</p>';
+        return;
+      }
+    }
     const minimumSelectedAge = Number($('#minimum-age').value);
     const maximumSelectedAge = Number($('#maximum-age').value);
-    const points = protein.points.filter(point => activeLines.has(point[1]) && point[0] >= minimumSelectedAge && point[0] <= maximumSelectedAge);
+    const points = activeProteinData.points.filter(point => activeLines.has(point[1]) && point[0] >= minimumSelectedAge && point[0] <= maximumSelectedAge);
     const fittedTrend = points.length > 2 ? regression(points) : null;
     $('#summary-measurements').textContent = points.length.toLocaleString();
     $('#summary-lines').textContent = String(new Set(points.map(point => point[1])).size);
@@ -281,6 +322,7 @@
         return response.json();
       }));
       explorer = data;
+      explorer.proteins.sort((a, b) => a.gene.localeCompare(b.gene) || a.accession.localeCompare(b.accession));
       $('#cohort-mice').textContent = data.cohort.mice.toLocaleString();
       $('#cohort-samples').textContent = data.cohort.samples.toLocaleString();
       $('#cohort-ages').textContent = `${data.cohort.minimum_age}–${data.cohort.maximum_age}`;
