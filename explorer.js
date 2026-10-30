@@ -11,6 +11,11 @@
   let plotRequest = 0;
   const shardCache = new Map();
   const pendingShards = new Map();
+  let filteredProteins = [];
+  let renderedProteinStart = -1;
+  const proteinRowHeight = 32;
+  const proteinWindowSize = 10;
+  const proteinScrollStep = 5;
 
   async function loadProteinPoints(protein) {
     let shard = shardCache.get(protein.shard);
@@ -72,34 +77,70 @@
     $('#overview-age-chart').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Measurements by age">${content}</svg>`;
   }
 
+  function proteinLabel(protein) {
+    return `${protein.gene} · ${protein.accession}`;
+  }
+
+  function closeProteinMenu() {
+    $('#protein-options').hidden = true;
+    $('#protein-select').setAttribute('aria-expanded', 'false');
+  }
+
+  function renderProteinWindow(force = false) {
+    const menu = $('#protein-options');
+    const lastStart = Math.max(0, filteredProteins.length - proteinWindowSize);
+    const start = Math.min(Math.floor(menu.scrollTop / (proteinRowHeight * proteinScrollStep)) * proteinScrollStep, lastStart);
+    if (start === renderedProteinStart && !force) return;
+    renderedProteinStart = start;
+    const windowNode = $('#protein-menu-window');
+    windowNode.style.top = `${start * proteinRowHeight}px`;
+    const items = document.createDocumentFragment();
+    filteredProteins.slice(start, start + proteinWindowSize).forEach((protein, offset) => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'protein-option';
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', String(protein.accession === chosenProtein));
+      item.dataset.index = String(start + offset);
+      item.textContent = proteinLabel(protein);
+      item.addEventListener('click', () => chooseProtein(protein));
+      items.appendChild(item);
+    });
+    windowNode.replaceChildren(items);
+  }
+
+  function openProteinMenu() {
+    if (!filteredProteins.length) return;
+    const menu = $('#protein-options');
+    const picker = $('.protein-picker');
+    menu.hidden = false;
+    picker.classList.toggle('open-up', picker.getBoundingClientRect().bottom + menu.clientHeight + 8 > innerHeight);
+    $('#protein-select').setAttribute('aria-expanded', 'true');
+    renderProteinWindow(true);
+  }
+
+  function chooseProtein(protein) {
+    chosenProtein = protein.accession;
+    $('#protein-select').textContent = proteinLabel(protein);
+    closeProteinMenu();
+    $('#protein-select').focus();
+    drawPlot();
+  }
+
   function buildProteinOptions(filter = '') {
-    const select = $('#protein-select');
-    const matches = explorer.proteins.filter(protein => `${protein.gene} ${protein.accession} ${protein.description}`.toLowerCase().includes(filter.toLowerCase()));
-    const visible = matches.slice(0, 100);
-    const selected = matches.find(protein => protein.accession === chosenProtein);
-    if (selected && !visible.some(protein => protein.accession === chosenProtein)) {
-      visible.pop();
-      visible.unshift(selected);
-    }
-    const options = document.createDocumentFragment();
-    if (!selected) {
-      const prompt = document.createElement('option');
-      prompt.value = '';
-      prompt.textContent = matches.length ? 'Select a protein' : 'No matching proteins';
-      options.appendChild(prompt);
-    }
-    for (const protein of visible) {
-      const option = document.createElement('option');
-      option.value = protein.accession;
-      option.textContent = `${protein.gene} · ${protein.accession}`;
-      options.appendChild(option);
-    }
-    select.replaceChildren(options);
-    select.value = selected ? chosenProtein : '';
-    select.disabled = !matches.length;
+    const query = filter.toLowerCase();
+    filteredProteins = explorer.proteins.filter(protein => `${protein.gene} ${protein.accession} ${protein.description}`.toLowerCase().includes(query));
+    const menu = $('#protein-options');
+    menu.scrollTop = 0;
+    menu.style.height = `${Math.min(Math.max(filteredProteins.length, 1), proteinWindowSize) * proteinRowHeight}px`;
+    $('#protein-menu-spacer').style.height = `${filteredProteins.length * proteinRowHeight}px`;
+    renderedProteinStart = -1;
+    renderProteinWindow(true);
     $('#protein-list-status').textContent = filter
-      ? `${matches.length.toLocaleString()} matches. Showing up to 100; select a protein.`
-      : `Showing 100 of ${explorer.proteins.length.toLocaleString()} proteins. Search to find the rest.`;
+      ? `${filteredProteins.length.toLocaleString()} matching proteins`
+      : `${explorer.proteins.length.toLocaleString()} proteins · scroll or search`;
+    if (filteredProteins.length && !menu.hidden) openProteinMenu();
+    if (!filteredProteins.length) closeProteinMenu();
   }
 
   function buildLineOptions() {
@@ -292,10 +333,40 @@
 
   function setupPlot() {
     buildLineOptions();
+    $('#protein-select').textContent = proteinLabel(explorer.proteins.find(protein => protein.accession === chosenProtein));
     buildProteinOptions();
     drawPlot();
     $('#protein-search').addEventListener('input', event => buildProteinOptions(event.target.value.trim()));
-    $('#protein-select').addEventListener('change', event => { if (event.target.value) { chosenProtein = event.target.value; drawPlot(); } });
+    $('#protein-search').addEventListener('focus', openProteinMenu);
+    $('#protein-search').addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeProteinMenu();
+      if (event.key === 'ArrowDown' && filteredProteins.length) {
+        event.preventDefault();
+        openProteinMenu();
+        $('#protein-menu-window .protein-option')?.focus();
+      }
+      if (event.key === 'Enter' && filteredProteins.length) {
+        event.preventDefault();
+        chooseProtein(filteredProteins[0]);
+      }
+    });
+    $('#protein-select').addEventListener('click', () => $('#protein-options').hidden ? openProteinMenu() : closeProteinMenu());
+    $('#protein-options').addEventListener('scroll', () => renderProteinWindow());
+    $('#protein-options').addEventListener('keydown', event => {
+      if (event.key === 'Escape') { closeProteinMenu(); $('#protein-select').focus(); return; }
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+      event.preventDefault();
+      const current = Number(document.activeElement.dataset.index || 0);
+      const next = Math.max(0, Math.min(filteredProteins.length - 1, current + (event.key === 'ArrowDown' ? 1 : -1)));
+      const menu = $('#protein-options');
+      if (next * proteinRowHeight < menu.scrollTop) menu.scrollTop = next * proteinRowHeight;
+      if ((next + 1) * proteinRowHeight > menu.scrollTop + menu.clientHeight) menu.scrollTop = (next + 1) * proteinRowHeight - menu.clientHeight;
+      renderProteinWindow();
+      menu.querySelector(`[data-index="${next}"]`)?.focus();
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!event.target.closest('.protein-picker') && event.target !== $('#protein-search')) closeProteinMenu();
+    });
     $('#trend-toggle').addEventListener('change', drawPlot);
     for (const id of ['minimum-age', 'maximum-age']) {
       $(`#${id}`).addEventListener('input', event => {

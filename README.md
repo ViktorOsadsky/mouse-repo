@@ -18,8 +18,8 @@ the matched sample metadata, including mouse IDs and batches. The
 detected protein/sample pair. These files load on demand when a visitor selects
 a protein. The original plasma quantity matrix and phenotype workbook remain
 outside `web/`. The plot can be downloaded as an SVG.
-The protein selector renders up to 100 names at a time; searching reaches all
-3,983 proteins without asking the browser to open a 3,983-item native menu.
+The protein selector renders ten names at a time and replaces five as visitors
+scroll. Searching still reaches all 3,983 proteins without a large native menu.
 
 ## Local review
 

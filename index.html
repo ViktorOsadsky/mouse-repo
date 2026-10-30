@@ -14,7 +14,7 @@
   <header class="site-header">
     <div class="container header-inner">
       <nav class="main-tabs" role="tablist" aria-label="Site sections">
-        <button id="tab-dataset" class="active" type="button" role="tab" aria-controls="dataset-panel" aria-selected="true" data-site-tab="dataset">Project description</button>
+        <button id="tab-dataset" class="active" type="button" role="tab" aria-controls="dataset-panel" aria-selected="true" data-site-tab="dataset">Overview</button>
         <button id="tab-plot" type="button" role="tab" aria-controls="plot-panel" aria-selected="false" data-site-tab="plot">Data</button>
         <button id="tab-estimator" type="button" role="tab" aria-controls="estimator-panel" aria-selected="false" data-site-tab="estimator">Age estimator</button>
       </nav>
@@ -47,7 +47,13 @@
             <label class="control-label" for="protein-search">Find a protein</label>
             <input id="protein-search" class="control-input" type="search" placeholder="Search name or accession" autocomplete="off">
             <label class="control-label" for="protein-select">Protein</label>
-            <select id="protein-select" class="control-input"></select>
+            <div class="protein-picker">
+              <button id="protein-select" class="control-input protein-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="protein-options">Loading proteins…</button>
+              <div id="protein-options" class="protein-menu" role="listbox" aria-label="Proteins" hidden>
+                <div id="protein-menu-spacer" class="protein-menu-spacer"></div>
+                <div id="protein-menu-window" class="protein-menu-window"></div>
+              </div>
+            </div>
             <p id="protein-list-status" class="protein-list-status" aria-live="polite"></p>
             <div class="control-group-heading"><span>Regression line</span></div>
             <label class="trend-option"><input id="trend-toggle" type="checkbox" checked><span>Linear</span></label>
