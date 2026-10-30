@@ -75,17 +75,31 @@
   function buildProteinOptions(filter = '') {
     const select = $('#protein-select');
     const matches = explorer.proteins.filter(protein => `${protein.gene} ${protein.accession} ${protein.description}`.toLowerCase().includes(filter.toLowerCase()));
-    select.replaceChildren();
-    for (const protein of matches) {
+    const visible = matches.slice(0, 100);
+    const selected = matches.find(protein => protein.accession === chosenProtein);
+    if (selected && !visible.some(protein => protein.accession === chosenProtein)) {
+      visible.pop();
+      visible.unshift(selected);
+    }
+    const options = document.createDocumentFragment();
+    if (!selected) {
+      const prompt = document.createElement('option');
+      prompt.value = '';
+      prompt.textContent = matches.length ? 'Select a protein' : 'No matching proteins';
+      options.appendChild(prompt);
+    }
+    for (const protein of visible) {
       const option = document.createElement('option');
       option.value = protein.accession;
       option.textContent = `${protein.gene} · ${protein.accession}`;
-      select.appendChild(option);
+      options.appendChild(option);
     }
-    if (!matches.some(protein => protein.accession === chosenProtein)) chosenProtein = matches[0]?.accession || '';
-    select.value = chosenProtein;
+    select.replaceChildren(options);
+    select.value = selected ? chosenProtein : '';
     select.disabled = !matches.length;
-    drawPlot();
+    $('#protein-list-status').textContent = filter
+      ? `${matches.length.toLocaleString()} matches. Showing up to 100; select a protein.`
+      : `Showing 100 of ${explorer.proteins.length.toLocaleString()} proteins. Search to find the rest.`;
   }
 
   function buildLineOptions() {
@@ -279,8 +293,9 @@
   function setupPlot() {
     buildLineOptions();
     buildProteinOptions();
+    drawPlot();
     $('#protein-search').addEventListener('input', event => buildProteinOptions(event.target.value.trim()));
-    $('#protein-select').addEventListener('change', event => { chosenProtein = event.target.value; drawPlot(); });
+    $('#protein-select').addEventListener('change', event => { if (event.target.value) { chosenProtein = event.target.value; drawPlot(); } });
     $('#trend-toggle').addEventListener('change', drawPlot);
     for (const id of ['minimum-age', 'maximum-age']) {
       $(`#${id}`).addEventListener('input', event => {

@@ -75,6 +75,8 @@ p { color: var(--muted); }
 .controls-heading h2 { font: 400 19px var(--font); margin: 0 0 18px; }
 .control-label { font-size: 13px; font-weight: 400; margin: 15px 0 6px; color: var(--ink); }
 .control-input { border-color: #cacaca; border-radius: 4px; font: 13px var(--font); height: 39px; }
+.control-input, .control-input option { background-color: #fff; color: #262b32; color-scheme: light; }
+.protein-list-status { margin: 6px 0 0; color: #69727b; font-size: 11px; line-height: 1.35; }
 .control-input:focus { border-color: #3979d9; outline: 2px solid #3979d934; }
 .control-group-heading { border: 0; margin-top: 24px; padding: 0; font: 18px Georgia, 'Times New Roman', serif; color: var(--ink); }
 .control-group-heading output { font: 11px var(--font); color: var(--muted); }
