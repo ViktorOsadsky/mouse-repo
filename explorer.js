@@ -34,8 +34,8 @@
       shard = await pendingShards.get(protein.shard);
     }
     return (shard[protein.accession] || []).map(([sampleIndex, value]) => {
-      const [mouseId, age, line, batch] = explorer.samples[sampleIndex];
-      return [age, line, value, mouseId, batch];
+      const [mouseId, age, line] = explorer.samples[sampleIndex];
+      return [age, line, value, mouseId];
     });
   }
 
@@ -213,7 +213,7 @@
     const signal = document.createElement('b');
     signal.textContent = `Protein signal ${point[2].toFixed(2)}`;
     const mouse = document.createElement('span');
-    mouse.textContent = `Mouse ${point[3]} · batch ${point[4]}`;
+    mouse.textContent = `Mouse ${point[3]}`;
     node.append(title, age, signal, mouse);
     node.hidden = false;
     activePoint = mark;
